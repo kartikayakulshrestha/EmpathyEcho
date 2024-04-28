@@ -13,9 +13,59 @@ function App() {
   const [total,settotal]=useState(0)
 
   async function fetcher() {
+    
+    
+    
     let res = await axios.get(`https://dummyjson.com/posts?skip=${currentpage*pagelimit}&limit=${pagelimit}`);
     settotal(res.data.total)
     setdata(res.data.posts);
+    if(localStorage.getItem("tags")){
+      setTagging(JSON.parse(localStorage.getItem("tags")))
+    }else{
+      
+      let x = JSON.stringify(tagging)
+      localStorage.setItem("tags",x)
+    }
+    const storedPageNumber = localStorage.getItem("currentpage");
+
+    if (storedPageNumber == null) {
+      
+      localStorage.setItem("currentpage", currentpage);
+    } else {
+      
+      setcurrentpage(parseInt(storedPageNumber));
+    }
+    console.log(currentpage)
+    const pagelimitl = localStorage.getItem("pagelimit");
+
+    if (pagelimitl == null) {
+      
+      localStorage.setItem("pagelimit", pagelimit);
+    } else {
+      
+      setpagelimit(parseInt(pagelimitl));
+    }
+    const totalpagel=localStorage.getItem("totalpage")
+    if(totalpagel==null){
+      localStorage.setItem("totalpage", totalpage);
+    }
+    else {
+      
+      settotalpage(parseInt(totalpagel));
+    }
+    const filterl=localStorage.getItem("filter")
+    if(filterl==null || filterl===""){
+      localStorage.setItem("filter", filter);
+    }
+    else {
+      setFilter(filterl)
+      let res = await axios.get("https://dummyjson.com/posts?limit=150");
+      let filteredData = res.data.posts.filter((f) =>
+      f.body.toLowerCase().includes(filterl.toLowerCase())
+    );
+    setdata(filteredData);
+    }
+    
   }
 
   async function tagsCollector() {
@@ -31,19 +81,23 @@ function App() {
     });
 
     setTagging(uniqueTags);
+    localStorage.setItem("tags",JSON.stringify(uniqueTags))
   }
 
   useEffect(() => {
     fetcher();
-    if (Object.keys(tagging).length === 0) {
-      tagsCollector();
+    if(localStorage.getItem("tags")===null){
+      tagsCollector()
     }
-  }, [currentpage]);
-
+    
+  }, [currentpage,pagelimit]);
+  
+  
   async function handleTagChange(key) {
     let updatedTagging = { ...tagging }; 
     (updatedTagging[key]===false)?updatedTagging[key] = true:updatedTagging[key] = false 
     setTagging(updatedTagging); 
+    localStorage.setItem("tags",JSON.stringify(updatedTagging))
     let val = []
     Object.entries(updatedTagging).filter(([k,v])=>{
       if (v===true){
@@ -65,20 +119,36 @@ function App() {
     setdata(res.data.posts);
   }
   }
+  function negetive(){
+    let x =currentpage-1
+    setcurrentpage(x)
+    localStorage.setItem("currentpage",x)
+  }
+  function postive(){
+    let x =currentpage+1
+    setcurrentpage(x)
+    localStorage.setItem("currentpage",x)
+  }
   function changeVals(e){
     const newPageLimit = parseInt(e.target.value);
   setpagelimit(newPageLimit);
+    localStorage.setItem("pagelimit",newPageLimit)
   const totalPages = Math.ceil(total / newPageLimit);
-  settotalpage(totalPages);
+  settotalpage(int(totalPages));
+    localStorage.setItem("totalpage",totalPages)
   }
   async function handleFilterChangee(value) {
     setFilter(value);
+    localStorage.setItem("filter",value)
     let res = await axios.get("https://dummyjson.com/posts?limit=150");
     let filteredData = res.data.posts.filter((f) =>
       f.body.toLowerCase().includes(value.toLowerCase())
     );
     setdata(filteredData);
   }
+
+  
+  
   return (
     <>
       <div className="">
@@ -106,7 +176,7 @@ function App() {
         </div>
         page:{currentpage+1}/{totalpage}
         <br />
-        <lable htmlFor="itemsperpage">itemperpage</lable>
+        <label htmlFor="itemsperpage">itemperpage</label>
         <select
             id="itemsPerPage"
             value={pagelimit}
@@ -146,9 +216,9 @@ function App() {
           </tbody>
         </table>
 
-        <button onClick={()=>{setcurrentpage(currentpage-1)} } disabled={currentpage<1?true:false}>Back</button>
+        <button onClick={()=>{negetive()} } disabled={currentpage<1?true:false}>Back</button>
         {currentpage+1}
-        <button onClick={()=>{setcurrentpage(currentpage+1)}} disabled={currentpage>=totalpage-1?true:false}>Next</button>
+        <button onClick={()=>{postive()}} disabled={currentpage>=totalpage-1?true:false}>Next</button>
 
       </div>
     </>
