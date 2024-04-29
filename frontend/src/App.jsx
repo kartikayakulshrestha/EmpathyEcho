@@ -1,22 +1,25 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import "./App.css";
-import { Button } from "antd";
-
+import { Pagination,Flex,Input } from 'antd';
+import Tablee from "./components/Table"
 function App() {
   const [data, setdata] = useState([]);
   const [filter, setFilter] = useState("");
   const [tagging, setTagging] = useState({});
-  const [currentpage,setcurrentpage]=useState(0)
+  const [currentpage,setcurrentpage]=useState(1)
   const [pagelimit,setpagelimit] = useState(10)
   const [totalpage,settotalpage] = useState(15)
   const [total,settotal]=useState(0)
+
+  //for deBouncing issues in searching
+  const [loading,setloading]=useState(false)
 
   async function fetcher() {
     
     
     
-    let res = await axios.get(`https://dummyjson.com/posts?skip=${currentpage*pagelimit}&limit=${pagelimit}`);
+    let res = await axios.get(`https://dummyjson.com/posts?skip=${(currentpage-1)*pagelimit}&limit=${pagelimit}`);
     settotal(res.data.total)
     setdata(res.data.posts);
     if(localStorage.getItem("tags")){
@@ -91,7 +94,11 @@ function App() {
     }
     
   }, [currentpage,pagelimit]);
-  
+  useEffect(()=>{
+    if(filter===""){
+      fetcher()
+    }
+  },[filter])
   
   async function handleTagChange(key) {
     let updatedTagging = { ...tagging }; 
@@ -137,90 +144,96 @@ function App() {
   settotalpage(int(totalPages));
     localStorage.setItem("totalpage",totalPages)
   }
-  async function handleFilterChangee(value) {
+  async function handleFilterChangee(event) {
+    console.log(event)
+    let value = event.target.value
     setFilter(value);
     localStorage.setItem("filter",value)
-    let res = await axios.get("https://dummyjson.com/posts?limit=150");
-    let filteredData = res.data.posts.filter((f) =>
-      f.body.toLowerCase().includes(value.toLowerCase())
-    );
-    setdata(filteredData);
+    
+    if(loading===false){
+      setloading(true)
+      
+    try {
+      
+        let res = await axios.get("https://dummyjson.com/posts?limit=150");
+        let filteredData = res.data.posts.filter((f) =>
+        f.body.toLowerCase().includes(value.toLowerCase())
+        );
+        setdata(filteredData);
+      
+      
+    
+    
+    } catch (error) {
+      alert('check your connection')
+    }
+    setloading(false)
+    }
+    
   }
 
+  function changeValse(currentPage, pageSize){
+    console.log(currentPage, pageSize)
+
+    setcurrentpage(currentPage)
+    const totalPages = Number(Math.ceil(total / pageSize));
+    settotalpage(totalPages);
+    setpagelimit(pageSize)
+    console.log(pagelimit, totalpage,currentpage)
+    localStorage.setItem("currentpage",currentPage)
+    
+    
+    localStorage.setItem("totalpage",totalPages)
+    
+    localStorage.setItem("pagelimit",pageSize)
+  }
   
   
   return (
     <>
+    
       <div className="">
-        <input
-          type="text"
-          value={filter}
-          onChange={(e) => handleFilterChangee(e.target.value)}
-          placeholder="search"
-        />
         
-        <div style={{ display: "flex" }}>
+         <h1 style={{ fontFamily: 'Roboto, sans-serif', textAlign:"center" }}>EmpathyEcho</h1>
+        
+        <div style={{ width:"100%" ,fontFamily: 'Roboto, sans-serif' }}>
+          <Flex wrap="wrap" gap="small" justify="center" >
           Tags Filter:
           {Object.entries(tagging).map(([tag, value]) => (
             <div key={tag}>
               
-              <label htmlFor={tag}> {tag}</label>
+              
               <input
                 type="checkbox"
                 name={tag}
                 checked={value}
                 onChange={() => handleTagChange(tag)}
               />
+              <label htmlFor={tag} style={{fontFamily: 'Roboto, sans-serif', marginLeft: '0.5rem' }}> {tag[0].toUpperCase()}{tag.slice(1)}</label>
             </div>
           ))}
+          <br />
+          <Input type="text"
+          value={filter}
+          onChange={(e) => handleFilterChangee(e)}
+          placeholder="Search"
+          style={{width:"50vw",}}/>
+          </Flex>
         </div>
-        page:{currentpage+1}/{totalpage}
-        <br />
-        <label htmlFor="itemsperpage">itemperpage</label>
-        <select
-            id="itemsPerPage"
-            value={pagelimit}
-            onChange={(e) => {changeVals(e)}}
-          >
-            <option value={7}>7</option>
-            <option value={10}>10</option>
-            <option value={15}>15</option>
-            <option value={20}>20</option>
-          </select>
-        <table className="">
-          <thead>
-            <tr>
-              <th>Id</th>
-              <th>Title</th>
-              <th>Body</th>
-              <th>Tags</th>
-              <th>UserId</th>
-              <th>Reactions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((e) => (
-              <tr key={e.id}>
-                <td>{e.id}</td>
-                <td>{e.title}</td>
-                <td>{e.body}</td>
-                <td>
-                  {e.tags.map((tag) => (
-                    <div key={tag}>{tag}</div>
-                  ))}
-                </td>
-                <td>{e.userId}</td>
-                <td>{e.reactions}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
+        <p style={{textAlign:"end",fontFamily: 'Roboto, sans-serif' }}>Page:{currentpage}/{totalpage}</p>
+        
+        
+        <div style={{overflowX: "auto",whiteSpace: "nowrap",maxWidth: "100%"}}>
+        <Tablee data={data}/>
+        </div>
         <button onClick={()=>{negetive()} } disabled={currentpage<1?true:false}>Back</button>
-        {currentpage+1}
+        {currentpage}
         <button onClick={()=>{postive()}} disabled={currentpage>=totalpage-1?true:false}>Next</button>
+        <Flex wrap="wrap" gap="small" justify="center" >
+        <Pagination defaultCurrent={currentpage}  showSizeChanger={true} current={currentpage} total={total}  pageSizeOptions={[7,10,15,20]} onChange={(currentPage, pageSize)=>{changeValse(currentPage, pageSize)}}/>
 
-      </div>
+        </Flex>
+     </div>
     </>
   );
 }
