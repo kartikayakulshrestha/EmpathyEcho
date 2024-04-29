@@ -1,18 +1,7 @@
 import React from 'react'
-import { Space, Table, Tag } from 'antd';
+import {  Table, Tag } from 'antd';
 const Tablee = (props) => {
-  const colorNames = [
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-];
+  
 const categoryColors = {
   "history": "volcano",    
   "american": "lime", 
@@ -30,11 +19,17 @@ const categoryColors = {
       title: 'S.no',
       dataIndex: 'id',
       key: 'id',
+      
     },
     {
       title: 'Title',
       dataIndex: 'title',
       key: 'title',
+      render:(_,{title,id})=>{
+        return  <>
+        <a href={`/${id}`}>{title}</a>
+        </>
+      }
     },
     {
       title: 'Body',
@@ -75,7 +70,7 @@ const categoryColors = {
   ];
   return (
     <div>
-      <Table dataSource={props.data} columns={columns} pagination={false}/>
+      <Table dataSource={props.data} columns={columns} rowKey="id" pagination={false}/>
       
     </div>
   )

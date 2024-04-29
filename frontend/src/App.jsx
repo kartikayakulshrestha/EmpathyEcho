@@ -122,11 +122,11 @@ function App() {
     });
     setdata(filteredData)
   }else{
-    let res = await axios.get("https://dummyjson.com/posts");
+    let res = await axios.get(`https://dummyjson.com/posts?skip=${(currentpage-1)*pagelimit}&limit=${pagelimit}`);
     setdata(res.data.posts);
   }
   }
-  function negetive(){
+  /* function negetive(){
     let x =currentpage-1
     setcurrentpage(x)
     localStorage.setItem("currentpage",x)
@@ -135,15 +135,15 @@ function App() {
     let x =currentpage+1
     setcurrentpage(x)
     localStorage.setItem("currentpage",x)
-  }
-  function changeVals(e){
+  } */
+  /* function changeVals(e){
     const newPageLimit = parseInt(e.target.value);
   setpagelimit(newPageLimit);
     localStorage.setItem("pagelimit",newPageLimit)
   const totalPages = Math.ceil(total / newPageLimit);
   settotalpage(int(totalPages));
     localStorage.setItem("totalpage",totalPages)
-  }
+  } */
   async function handleFilterChangee(event) {
     console.log(event)
     let value = event.target.value
@@ -226,9 +226,7 @@ function App() {
         <div style={{overflowX: "auto",whiteSpace: "nowrap",maxWidth: "100%"}}>
         <Tablee data={data}/>
         </div>
-        <button onClick={()=>{negetive()} } disabled={currentpage<1?true:false}>Back</button>
-        {currentpage}
-        <button onClick={()=>{postive()}} disabled={currentpage>=totalpage-1?true:false}>Next</button>
+        
         <Flex wrap="wrap" gap="small" justify="center" >
         <Pagination defaultCurrent={currentpage}  showSizeChanger={true} current={currentpage} total={total}  pageSizeOptions={[7,10,15,20]} onChange={(currentPage, pageSize)=>{changeValse(currentPage, pageSize)}}/>
 
