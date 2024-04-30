@@ -104,7 +104,7 @@ const pages = () => {
     <><Button onClick={()=>{navigate("/")}}> <RollbackOutlined style={{color:"black"}} size={60}/></Button>
     <div style={{
       margin: "50px 50px ",
-      paddingRight:"40px"
+     
   }} >
       <h1 style={{ fontFamily: 'Roboto, sans-serif', textAlign:"center" }}>EmpathyEcho</h1>
         
