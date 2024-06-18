@@ -4,7 +4,7 @@ import { RollbackOutlined } from "@ant-design/icons";
 import { Button, Tag, Table } from "antd";
 import axios from "axios";
 
-const Pages = () => {
+const pages = () => {
   const categoryColors = {
     history: "volcano",
     american: "lime",
@@ -17,7 +17,6 @@ const Pages = () => {
     love: "blue",
     classic: "magenta",
   };
-
   const columns = [
     {
       title: "S.no",
@@ -66,33 +65,38 @@ const Pages = () => {
       key: "reactions",
     },
   ];
-
   const { id } = useParams();
-  const [data, setData] = useState({});
-  const [userData, setUserData] = useState([]);
+  const [data, setdata] = useState([]);
+  const [userdata, setuserdata] = useState([]);
   const navigate = useNavigate();
-
-  const fetch = async () => {
+  async function fetch() {
     try {
       let res = await axios.get(`https://dummyjson.com/posts/${id}`);
       let res1 = res.data;
-      setData(res1);
-      console.log("Post data: ", res1);
-
+      
+      if (data.length==0){
+        setdata(data.push([res1]))
+      }
+      
+      
+      
       let res2 = await axios.get(`https://dummyjson.com/posts?limit=150`);
       let x = res2.data.posts.filter((f) => {
-        return f.userId === res1.userId && f.id !== res1.id;
+        /* console.log(f.userId,data[0][0].userId,res.data.userId) */
+        
+        return f.userId === res.data.userId && f.id !== res.data.id
       });
-      setUserData(x);
+
+      setuserdata(x);
+      
     } catch (error) {
-      console.error("Error fetching data:", error);
-      navigate("/");
+      return navigate("/");
     }
-  };
+  }
 
   useEffect(() => {
     fetch();
-  }, [id]);
+  }, []);
 
   return (
     <>
@@ -101,6 +105,7 @@ const Pages = () => {
           navigate("/");
         }}
       >
+        {" "}
         <RollbackOutlined style={{ color: "black" }} size={60} />
       </Button>
       <div
@@ -114,8 +119,8 @@ const Pages = () => {
 
         <h1>{data.title}</h1>
 
-        {data.tags &&
-          data.tags.map((tag) => {
+        {data.title &&
+          Object.values(data[0].tags).map((tag) => {
             return (
               <Tag color={categoryColors[tag]} key={tag}>
                 {tag.toUpperCase()}
@@ -124,10 +129,12 @@ const Pages = () => {
           })}
 
         <p style={{ fontFamily: "sans-serif" }}>{data.body}</p>
-        <span> Number of Reactions: {data.reactions}</span>
-        <p>User id: {data.userId}</p>
+        {console.log(userdata)}
 
-        {userData.length > 0 ? (
+        <span> Number of Reactions: {data.reactions}</span>
+        <p>User id:{data.userId}</p>
+
+        {userdata.length > 0 ? (
           <>
             <h3>Some more Articles of User Id {data.userId}</h3>
             <div
@@ -138,7 +145,7 @@ const Pages = () => {
               }}
             >
               <Table
-                dataSource={userData}
+                dataSource={userdata}
                 columns={columns}
                 rowKey="id"
                 pagination={false}
@@ -153,4 +160,4 @@ const Pages = () => {
   );
 };
 
-export default Pages;
+export default pages;
